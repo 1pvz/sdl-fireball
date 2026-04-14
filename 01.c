@@ -10,7 +10,7 @@ main(int argc, char* argv[]) {
 
     const int w = 640;
     const int h = 480;
-    SDL_Window *window = SDL_CreateWindow("Hello SDL3", w, h, 1);
+    SDL_Window *window = SDL_CreateWindow("Hello SDL3", w, h, 0);
     if (window == NULL) {
         SDL_Log("sdl create window failed %s\n", SDL_GetError());
         return 1;
