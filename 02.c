@@ -22,49 +22,35 @@ main(int argc, char* argv[]) {
         return 1;
     }
 
-    SDL_Surface *image = SDL_LoadPNG("paddle.png");
-    if (image == NULL) {
-        SDL_Log("Error loading image: %s\n", SDL_GetError());
-    }
+    Uint32 color = SDL_MapSurfaceRGB(surface, 0, 0, 0);
+    SDL_FillSurfaceRect(surface, NULL, color);
 
-    int x = 100;
-    int y = 200;
-    int speed = 15;
-
-    SDL_Rect rect = {
-        .x = x,
-        .y = y,
+    SDL_Surface *image = SDL_LoadPNG("bmp_24.png");
+    SDL_Rect rect1 = {
+        .x = 100,
+        .y = 60,
+        .w = 90,
+        .h = 40,
+    };
+    SDL_Rect rect2 = {
+        .x = 50,
+        .y = 150,
         .w = image->w,
         .h = image->h,
     };
+    SDL_BlitSurface(image, &rect1, surface, &rect2);
+    SDL_UpdateWindowSurface(window);
 
-    bool quit = false;
-    while (quit == false) {
-        SDL_Event event;
-        while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_EVENT_QUIT) {
-                quit = true;
-            }
-            const bool *keystate = SDL_GetKeyboardState(NULL);
-            if (keystate[SDL_SCANCODE_A]) {
-                rect.x -= speed;
-            }
-            if (keystate[SDL_SCANCODE_D]) {
-                rect.x += speed;
-            }
+    SDL_Event event;
+    while (SDL_WaitEvent(&event)) {
+        if (event.type == SDL_EVENT_QUIT) {
+            break;
         }
-
-        // clear
-        Uint32 color = SDL_MapSurfaceRGB(surface, 255, 255, 255);
-        SDL_FillSurfaceRect(surface, NULL, color);
-
-        // update
-        SDL_BlitSurface(image, NULL, surface, &rect);
-        SDL_UpdateWindowSurface(window);
     }
 
-    SDL_DestroySurface(image);
     SDL_DestroyWindow(window);
+    window = NULL;
+    surface = NULL;
     SDL_Quit();
 
     return 0;
