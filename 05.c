@@ -1,11 +1,6 @@
-#include "SDL3/SDL_init.h"
-#include "SDL3/SDL_rect.h"
-#include "SDL3/SDL_surface.h"
-#include "SDL3/SDL_video.h"
 #include <stdlib.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
-#include <string.h>
 
 struct _Paddle {
     SDL_Surface *image;
