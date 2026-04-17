@@ -1,14 +1,7 @@
-#include "SDL3/SDL_init.h"
-#include "SDL3/SDL_log.h"
-#include "SDL3/SDL_rect.h"
-#include "SDL3/SDL_surface.h"
-#include "SDL3/SDL_video.h"
-#include <stdbool.h>
 #include <stdlib.h>
+#include <assert.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
-#include <string.h>
-#include <assert.h>
 
 struct _Paddle {
     SDL_Surface *image;
@@ -42,7 +35,14 @@ Paddle_moveRight(Paddle *self) {
 Paddle *
 Paddle_new(void) {
     SDL_Surface *image = imageFromPath("paddle.png");
+    if (image == NULL) {
+        return NULL;
+    }
     Paddle *o = malloc(sizeof(Paddle));
+    if (o == NULL) {
+        SDL_DestroySurface(image);
+        return NULL;
+    }
     o->image = image;
     o->x = 100;
     o->y = 250;
@@ -60,18 +60,23 @@ struct _Game {
     SDL_Surface *surface;
     Paddle *paddle;
     bool keydowns[MAX_COUNT];
-    void (*actions[MAX_COUNT])(void);
+    void (*actions[MAX_COUNT])(void *);
+    void *data[MAX_COUNT];
 };
 typedef struct _Game Game;
 
 Game *
 Game_new(void) {
     Game *g = malloc(sizeof(Game));
+    if (g == NULL) {
+        return NULL;
+    }
     const int w = 640;
     const int h = 480;
     SDL_Window *window = SDL_CreateWindow("Hello SDL3", w, h, 0);
     if (window == NULL) {
         SDL_Log("sdl create window failed %s\n", SDL_GetError());
+        free(g);
         return NULL;
     }
     g->window = window;
@@ -79,6 +84,8 @@ Game_new(void) {
     SDL_Surface *surface = SDL_GetWindowSurface(window);
     if (surface == NULL) {
         SDL_Log("Error getting surface: %s\n", SDL_GetError());
+        SDL_DestroyWindow(window);
+        free(g);
         return NULL;
     }
     g->surface = surface;
@@ -87,74 +94,69 @@ Game_new(void) {
     for (int i = 0; i < MAX_COUNT; i += 1) {
         g->keydowns[i] = false;
         g->actions[i] = NULL;
+        g->data[i] = NULL;
     }
 
     return g;
 }
 
-// typedef void (*callback)(void) action;
-//
 void
-moveLeft(void) {
-    SDL_Log("register key and move left\n");
+moveLeft(void *data) {
+    Paddle *paddle = (Paddle *)data;
+    Paddle_moveLeft(paddle);
 }
 
 void
-Game_registerAction(Game *self, const char key, void (*callback)(void)) {
-    assert(0 <= key && key < MAX_COUNT);
+moveRight(void *data) {
+    Paddle *paddle = (Paddle *)data;
+    Paddle_moveRight(paddle);
+}
+
+void
+Game_registerAction(Game *self, const char key, void (*callback)(void *), void *data) {
+    assert((unsigned char)key < MAX_COUNT);
     Game *game = self;
     game->actions[key] = callback;
+    game->data[key] = data;
 }
 
 void
 Game_runLoop(Game *self) {
     Game *game = self;
     Paddle *paddle = self->paddle;
-    bool keyA_pressed = false;
-    bool keyD_pressed = false;
-    bool quit = false;
 
-    Game_registerAction(game, 'a', moveLeft);
+    Game_registerAction(game, 'a', moveLeft, paddle);
+    Game_registerAction(game, 'd', moveRight, paddle);
+
+    const int delay = 1000 / 60;
+    bool quit = false;
     while (quit == false) {
+        Uint32 frameStart = SDL_GetTicks();
+
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_EVENT_QUIT) {
                 quit = true;
             } else if (event.type == SDL_EVENT_KEY_DOWN) {
-                // if (event.key.key == SDLK_A) {
-                //     keyA_pressed = true;
-                // }
-                // if (event.key.key == SDLK_D) {
-                //     keyD_pressed = true;
-                // }
-                // int index = event.key.key;
-                game->keydowns[event.key.key] = true;
+                unsigned char index = (unsigned char)event.key.key;
+                if (index < MAX_COUNT) {
+                    game->keydowns[index] = true;
+                }
             } else if (event.type == SDL_EVENT_KEY_UP) {
-                // if (event.key.key == SDLK_A) {
-                //     keyA_pressed = false;
-                // }
-                // if (event.key.key == SDLK_D) {
-                //     keyD_pressed = false;
-                // }
-                game->keydowns[event.key.key] = false;
+                unsigned char index = (unsigned char)event.key.key;
+                if (index < MAX_COUNT) {
+                    game->keydowns[index] = false;
+                }
             }
         }
 
         for (int i = 0; i < MAX_COUNT; i += 1) {
             if (game->actions[i] != NULL && game->keydowns[i]) {
-                game->actions[i]();
+                game->actions[i](game->data[i]);
             }
         }
 
-        // if (keyA_pressed) {
-        //     paddle->moveLeft(paddle);
-        // }
-        // if (keyD_pressed) {
-        //     paddle->moveRight(paddle);
-        // }
-
-
-        Uint32 color = SDL_MapSurfaceRGB(game->surface, 255, 255, 255);
+        Uint64 color = SDL_MapSurfaceRGB(game->surface, 255, 255, 255);
         SDL_FillSurfaceRect(game->surface, NULL, color);
         SDL_Rect rect = {
             .x = paddle->x,
@@ -164,6 +166,12 @@ Game_runLoop(Game *self) {
         };
         SDL_BlitSurface(paddle->image, NULL, game->surface, &rect);
         SDL_UpdateWindowSurface(game->window);
+
+        Uint64 frameEnd = SDL_GetTicks();
+        int frameTime = frameEnd - frameStart;
+        if (frameTime < delay) {
+            SDL_Delay(delay - frameTime);
+        }
     }
 }
 
@@ -181,6 +189,13 @@ main(int argc, char* argv[]) {
     }
 
     Paddle *paddle = Paddle_new();
+    if (paddle == NULL) {
+        SDL_Log("Failed to create paddle\n");
+        SDL_DestroyWindow(game->window);
+        free(game);
+        SDL_Quit();
+        return 1;
+    }
     game->paddle = paddle;
     Game_runLoop(game);
 
