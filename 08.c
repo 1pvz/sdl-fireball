@@ -16,6 +16,9 @@ struct _GuaImage {
 };
 typedef struct _GuaImage GuaImage;
 
+bool
+collide(GuaImage a, GuaImage b);
+
 struct _Paddle {
     GuaImage image;
     int speed;
@@ -67,6 +70,11 @@ Paddle_new(void) {
     o->moveLeft = Paddle_moveLeft;
     o->moveRight = Paddle_moveRight;
     return o;
+}
+
+bool
+Paddle_collide(Paddle *self, GuaImage image) {
+    return collide(self->image, image);
 }
 
 struct _Ball {
@@ -150,6 +158,11 @@ Block_new(void) {
 void
 Block_kill(Block *self) {
     self->alive = false;
+}
+
+bool
+Block_collide(Block *self, GuaImage image) {
+    return self->alive && collide(self->image, image);
 }
 
 // 头文件本来应该放在一起，但是现在还没有抽，先按照模块顺序组织
@@ -281,11 +294,12 @@ void
 Game_update(Game *self) {
     Game *game = self;
     Ball_move(game->ball);
-    if (collide(game->paddle->image, game->ball->image)) {
+    if (Paddle_collide(game->paddle, game->ball->image)) {
         Ball_bounce(game->ball);
     }
-    if (collide(game->block->image, game->ball->image)) {
+    if (Block_collide(game->block, game->ball->image)) {
         Block_kill(game->block);
+        Ball_bounce(game->ball);
     }
 }
 
