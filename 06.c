@@ -53,7 +53,7 @@ Paddle_new(void) {
 }
 
 // 头文件本来应该放在一起，但是现在还没有抽，先按照模块顺序组织
-#define MAX_COUNT 128
+#define MAX_COUNT SDL_SCANCODE_COUNT
 
 struct _Game {
     SDL_Window *window;
@@ -113,8 +113,8 @@ moveRight(void *data) {
 }
 
 void
-Game_registerAction(Game *self, const char key, void (*callback)(void *), void *data) {
-    assert((unsigned char)key < MAX_COUNT);
+Game_registerAction(Game *self, SDL_Scancode key, void (*callback)(void *), void *data) {
+    assert(key < MAX_COUNT);
     Game *game = self;
     game->actions[key] = callback;
     game->data[key] = data;
@@ -125,8 +125,8 @@ Game_runLoop(Game *self) {
     Game *game = self;
     Paddle *paddle = self->paddle;
 
-    Game_registerAction(game, 'a', moveLeft, paddle);
-    Game_registerAction(game, 'd', moveRight, paddle);
+    Game_registerAction(game, SDL_SCANCODE_A, moveLeft, paddle);
+    Game_registerAction(game, SDL_SCANCODE_D, moveRight, paddle);
 
     const int delay = 1000 / 60;
     bool quit = false;
@@ -138,14 +138,14 @@ Game_runLoop(Game *self) {
             if (event.type == SDL_EVENT_QUIT) {
                 quit = true;
             } else if (event.type == SDL_EVENT_KEY_DOWN) {
-                unsigned char index = (unsigned char)event.key.key;
-                if (index < MAX_COUNT) {
-                    game->keydowns[index] = true;
+                SDL_Scancode sc = event.key.scancode;
+                if (sc < MAX_COUNT) {
+                    game->keydowns[sc] = true;
                 }
             } else if (event.type == SDL_EVENT_KEY_UP) {
-                unsigned char index = (unsigned char)event.key.key;
-                if (index < MAX_COUNT) {
-                    game->keydowns[index] = false;
+                SDL_Scancode sc = event.key.scancode;
+                if (sc < MAX_COUNT) {
+                    game->keydowns[sc] = false;
                 }
             }
         }
