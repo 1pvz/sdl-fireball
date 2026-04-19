@@ -155,6 +155,21 @@ Block_new(void) {
     return o;
 }
 
+Block *
+Block_new_with_image(SDL_Surface *image) {
+    Block *o = malloc(sizeof(Block));
+    if (o == NULL) {
+        // 多个 block 共享图片，清理工作放在最后
+        // SDL_DestroySurface(image);
+        return NULL;
+    }
+    o->image.image = image;
+    o->image.x = 100;
+    o->image.y = 100;
+    o->alive = true;
+    return o;
+}
+
 void
 Block_kill(Block *self) {
     self->alive = false;
@@ -392,9 +407,21 @@ main(int argc, char* argv[]) {
     }
     game->ball = ball;
 
+    SDL_Surface *blockImage = imageFromPath("block.png");
+    if (blockImage == NULL) {
+        SDL_Log("Failed to load block image\n");
+        SDL_DestroyWindow(game->window);
+        free(game);
+        SDL_Quit();
+        return 1;
+    }
     for (int i = 0; i < NUMBER_OF_BLOCKS; i += 1) {
-        Block *block = Block_new();
+        Block *block = Block_new_with_image(blockImage);
         if (block == NULL) {
+            // 清理已经创建成功的 block
+            for (int j = 0; j < i; j += 1) {
+                free(game->blocks[j]);
+            }
             SDL_Log("Failed to create block\n");
             SDL_DestroyWindow(game->window);
             free(game);
@@ -420,11 +447,12 @@ main(int argc, char* argv[]) {
 
     for (int i = 0; i < game->numberOfBlocks; i += 1) {
         Block *block = game->blocks[i];
-        SDL_DestroySurface(block->image.image);
         free(block);
         game->blocks[i] = NULL;
     }
     game->numberOfBlocks = 0;
+    // 共享图片后，只需要清理一次
+    SDL_DestroySurface(blockImage);
     SDL_DestroyWindow(game->window);
     free(game);
     SDL_Quit();
