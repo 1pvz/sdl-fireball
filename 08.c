@@ -167,6 +167,7 @@ Block_collide(Block *self, GuaImage image) {
 
 // 头文件本来应该放在一起，但是现在还没有抽，先按照模块顺序组织
 #define MAX_COUNT SDL_SCANCODE_COUNT
+#define NUMBER_OF_BLOCKS 3
 
 struct _Game {
     SDL_Window *window;
@@ -174,7 +175,8 @@ struct _Game {
     bool quit;
     Paddle *paddle;
     Ball *ball;
-    Block *block;
+    Block *blocks[NUMBER_OF_BLOCKS];
+    int numberOfBlocks;
     bool keydowns[MAX_COUNT];
     void (*actions[MAX_COUNT])(void *);
     void *data[MAX_COUNT];
@@ -206,7 +208,11 @@ Game_new(void) {
     g->quit = false;
     g->paddle = NULL;
     g->ball = NULL;
-    g->block = NULL;
+
+    for (int i = 0; i < NUMBER_OF_BLOCKS; i += 1) {
+        g->blocks[i] = NULL;
+    }
+    g->numberOfBlocks = 0;
 
     for (int i = 0; i < MAX_COUNT; i += 1) {
         g->keydowns[i] = false;
@@ -297,9 +303,12 @@ Game_update(Game *self) {
     if (Paddle_collide(game->paddle, game->ball->image)) {
         Ball_bounce(game->ball);
     }
-    if (Block_collide(game->block, game->ball->image)) {
-        Block_kill(game->block);
-        Ball_bounce(game->ball);
+    for (int i = 0; i < game->numberOfBlocks; i += 1) {
+        Block *block = game->blocks[i];
+        if (Block_collide(block, game->ball->image)) {
+            Block_kill(block);
+            Ball_bounce(game->ball);
+        }
     }
 }
 
@@ -308,11 +317,14 @@ Game_draw(Game *self) {
     Game *game = self;
     Paddle *paddle = game->paddle;
     Ball *ball = game->ball;
-    Block *block = game->block;
     Game_drawImage(game, paddle->image);
     Game_drawImage(game, ball->image);
-    if (block->alive) {
-        Game_drawImage(game, block->image);
+
+    for (int i = 0; i < game->numberOfBlocks; i += 1) {
+        Block *block = game->blocks[i];
+        if (block->alive) {
+            Game_drawImage(game, block->image);
+        }
     }
     SDL_UpdateWindowSurface(game->window);
 }
@@ -380,15 +392,20 @@ main(int argc, char* argv[]) {
     }
     game->ball = ball;
 
-    Block *block = Block_new();
-    if (ball == NULL) {
-        SDL_Log("Failed to create ball\n");
-        SDL_DestroyWindow(game->window);
-        free(game);
-        SDL_Quit();
-        return 1;
+    for (int i = 0; i < NUMBER_OF_BLOCKS; i += 1) {
+        Block *block = Block_new();
+        if (block == NULL) {
+            SDL_Log("Failed to create block\n");
+            SDL_DestroyWindow(game->window);
+            free(game);
+            SDL_Quit();
+            return 1;
+        }
+        block->image.x = i * 100;
+        block->image.y = 100;
+        game->blocks[i] = block;
+        game->numberOfBlocks += 1;
     }
-    game->block = block;
 
     Game_registerAction(game, SDL_SCANCODE_A, moveLeft, paddle);
     Game_registerAction(game, SDL_SCANCODE_D, moveRight, paddle);
@@ -400,8 +417,14 @@ main(int argc, char* argv[]) {
     free(paddle);
     SDL_DestroySurface(ball->image.image);
     free(ball);
-    SDL_DestroySurface(block->image.image);
-    free(block);
+
+    for (int i = 0; i < game->numberOfBlocks; i += 1) {
+        Block *block = game->blocks[i];
+        SDL_DestroySurface(block->image.image);
+        free(block);
+        game->blocks[i] = NULL;
+    }
+    game->numberOfBlocks = 0;
     SDL_DestroyWindow(game->window);
     free(game);
     SDL_Quit();
