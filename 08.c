@@ -36,20 +36,30 @@ imageFromPath(const char *path) {
     return image;
 }
 
+int
+clamp(int value, int min, int max) {
+    if (value < min) {
+        value = min;
+    } else if (value > max) {
+        value = max;
+    }
+    return value;
+}
+
+void
+Paddle_move(Paddle *self, int x) {
+    int x1 = clamp(x, 0, width - self->image.image->w);
+    self->image.x = x1;
+}
+
 void
 Paddle_moveLeft(Paddle *self) {
-    self->image.x -= self->speed;
-    if (self->image.x <= 0) {
-        self->image.x = 0;
-    }
+    Paddle_move(self, self->image.x - self->speed);
 }
 
 void
 Paddle_moveRight(Paddle *self) {
-    self->image.x += self->speed;
-    if (self->image.x + self->image.image->w >= width) {
-        self->image.x = width - self->image.image->w;
-    }
+    Paddle_move(self, self->image.x + self->speed);
 }
 
 Paddle *
