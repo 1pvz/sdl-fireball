@@ -1,10 +1,7 @@
-#include "SDL3/SDL_surface.h"
-#include <stdbool.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
-#include <string.h>
 
 static const int width = 400;
 static const int height = 300;
