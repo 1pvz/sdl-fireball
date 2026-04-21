@@ -2,11 +2,13 @@
 #include <SDL3/SDL_surface.h>
 #include <SDL3/SDL_log.h>
 #include "paddle.h"
+#include "game.h"
 #include "utils.h"
 
 void
 Paddle_move(Paddle *self, int x) {
-    int x1 = clamp(x, 0, 400 - self->image.image->w);
+    int width = self->game->width;
+    int x1 = clamp(x, 0, width - self->image.image->w);
     self->image.x = x1;
 }
 
@@ -34,6 +36,7 @@ Paddle_new(void) {
     o->image.image = image;
     o->image.x = 100;
     o->image.y = 250;
+    o->game = NULL;
     o->speed = 15;
     o->moveLeft = Paddle_moveLeft;
     o->moveRight = Paddle_moveRight;
