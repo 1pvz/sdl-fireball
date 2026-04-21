@@ -2,13 +2,18 @@
 
 #include "gua_image.h"
 
+struct _Game;
+typedef struct _Game Game;
+
+struct _Ball;
+typedef struct _Ball Ball;
 struct _Ball {
     GuaImage image;
+    Game *game;
     int speedX;
     int speedY;
     bool fired;
 };
-typedef struct _Ball Ball;
 
 Ball *
 Ball_new(void);
