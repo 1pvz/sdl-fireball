@@ -34,7 +34,10 @@ main(int argc, char* argv[]) {
         return 1;
     }
 
-    Game *game = Game_new();
+    Game *game = Game_new((GameConfig) {
+        .width = 400,
+        .height = 300,
+    });
     if (game == NULL) {
         SDL_Quit();
         return 1;
@@ -48,6 +51,7 @@ main(int argc, char* argv[]) {
         SDL_Quit();
         return 1;
     }
+    paddle->game = game;
     game->paddle = paddle;
 
     Ball *ball = Ball_new();
@@ -58,6 +62,7 @@ main(int argc, char* argv[]) {
         SDL_Quit();
         return 1;
     }
+    ball->game = game;
     game->ball = ball;
 
     SDL_Surface *blockImage = imageFromPath("block.png");
