@@ -2,12 +2,12 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
 
-#include "09/gua_image.h"
-#include "09/paddle.h"
-#include "09/ball.h"
-#include "09/block.h"
-#include "09/game.h"
-#include "09/utils.h"
+#include "10/gua_image.h"
+#include "10/paddle.h"
+#include "10/ball.h"
+#include "10/block.h"
+#include "10/game.h"
+#include "10/utils.h"
 
 void
 moveLeft(void *data) {
@@ -37,6 +37,7 @@ main(int argc, char* argv[]) {
     Game *game = Game_new((GameConfig) {
         .width = 400,
         .height = 300,
+        .fps = 10,
     });
     if (game == NULL) {
         SDL_Quit();

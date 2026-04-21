@@ -13,6 +13,7 @@
 struct _GameConfig {
     int width;
     int height;
+    int fps;
 };
 typedef struct _GameConfig GameConfig;
 
@@ -33,6 +34,7 @@ struct _Game {
     bool enableDrag;
     float offsetX;
     float offsetY;
+    int fps;
 };
 typedef struct _Game Game;
 

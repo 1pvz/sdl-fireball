@@ -48,6 +48,7 @@ Game_new(GameConfig gameConfig) {
     g->enableDrag = false;
     g->offsetX = 0;
     g->offsetY = 0;
+    g->fps = gameConfig.fps;
 
     return g;
 }
@@ -163,7 +164,7 @@ void
 Game_runLoop(Game *self) {
     Game *game = self;
 
-    const int delay = 1000 / 60;
+    const int delay = 1000 / game->fps;
     while (game->quit == false) {
         Uint32 frameStart = SDL_GetTicks();
 
