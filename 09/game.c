@@ -5,16 +5,13 @@
 #include <SDL3/SDL_timer.h>
 #include "game.h"
 
-static const int width = 400;
-static const int height = 300;
-
 Game *
-Game_new(void) {
+Game_new(GameConfig gameConfig) {
     Game *g = malloc(sizeof(Game));
     if (g == NULL) {
         return NULL;
     }
-    SDL_Window *window = SDL_CreateWindow("Hello SDL3", width, height, 0);
+    SDL_Window *window = SDL_CreateWindow("Hello SDL3", gameConfig.width, gameConfig.height, 0);
     if (window == NULL) {
         SDL_Log("sdl create window failed %s\n", SDL_GetError());
         free(g);
@@ -30,6 +27,8 @@ Game_new(void) {
         return NULL;
     }
     g->surface = surface;
+    g->width = gameConfig.width;
+    g->height = gameConfig.height;
     g->quit = false;
     g->paddle = NULL;
     g->ball = NULL;
