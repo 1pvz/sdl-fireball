@@ -10,9 +10,17 @@
 #define MAX_COUNT SDL_SCANCODE_COUNT
 #define NUMBER_OF_BLOCKS 3
 
+struct _GameConfig {
+    int width;
+    int height;
+};
+typedef struct _GameConfig GameConfig;
+
 struct _Game {
     SDL_Window *window;
     SDL_Surface *surface;
+    int width;
+    int height;
     bool quit;
     Paddle *paddle;
     Ball *ball;
@@ -25,7 +33,7 @@ struct _Game {
 typedef struct _Game Game;
 
 Game *
-Game_new(void);
+Game_new(GameConfig gameConfig);
 
 void
 Game_registerAction(Game *self, SDL_Scancode key, void (*callback)(void *), void *data);
