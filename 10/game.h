@@ -30,6 +30,9 @@ struct _Game {
     void (*actions[MAX_COUNT])(void *);
     void *data[MAX_COUNT];
     bool paused;
+    bool enableDrag;
+    float offsetX;
+    float offsetY;
 };
 typedef struct _Game Game;
 

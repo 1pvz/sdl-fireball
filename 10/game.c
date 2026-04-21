@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdlib.h>
 #include "assert.h"
 #include <SDL3/SDL_log.h>
@@ -43,6 +44,10 @@ Game_new(GameConfig gameConfig) {
         g->actions[i] = NULL;
         g->data[i] = NULL;
     }
+    g->paused = false;
+    g->enableDrag = false;
+    g->offsetX = 0;
+    g->offsetY = 0;
 
     return g;
 }
@@ -86,6 +91,33 @@ Game_bindEvents(Game *self) {
             SDL_Scancode sc = event.key.scancode;
             if (sc < MAX_COUNT) {
                 game->keydowns[sc] = false;
+            }
+        } else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+            float x = event.button.x;
+            float y = event.button.y;
+            SDL_Point point = {
+                .x = x,
+                .y = y,
+            };
+            SDL_Rect rect = {
+                .x = game->ball->image.x,
+                .y = game->ball->image.y,
+                .w = game->ball->image.image->w,
+                .h = game->ball->image.image->h,
+            };
+            if (SDL_PointInRect(&point, &rect)) {
+                game->enableDrag = true;
+                game->offsetX = x - rect.x;
+                game->offsetY = y - rect.y;
+            }
+        } else if (event.type == SDL_EVENT_MOUSE_BUTTON_UP) {
+            game->enableDrag = false;
+        } else if (event.type == SDL_EVENT_MOUSE_MOTION) {
+            if (game->enableDrag) {
+                float x = event.motion.x;
+                float y = event.motion.y;
+                game->ball->image.x = x - game->offsetX;
+                game->ball->image.y = y - game->offsetY;
             }
         }
     }
