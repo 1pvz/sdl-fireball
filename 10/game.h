@@ -29,6 +29,7 @@ struct _Game {
     bool keydowns[MAX_COUNT];
     void (*actions[MAX_COUNT])(void *);
     void *data[MAX_COUNT];
+    bool paused;
 };
 typedef struct _Game Game;
 

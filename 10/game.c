@@ -79,6 +79,9 @@ Game_bindEvents(Game *self) {
             if (sc < MAX_COUNT) {
                 game->keydowns[sc] = true;
             }
+            if (sc == SDL_SCANCODE_P) {
+                game->paused = !game->paused;
+            }
         } else if (event.type == SDL_EVENT_KEY_UP) {
             SDL_Scancode sc = event.key.scancode;
             if (sc < MAX_COUNT) {
@@ -91,6 +94,9 @@ Game_bindEvents(Game *self) {
 void
 Game_update(Game *self) {
     Game *game = self;
+    if (game->paused) {
+        return;
+    }
     Ball_move(game->ball);
     if (Paddle_collide(game->paddle, game->ball->image)) {
         Ball_bounce(game->ball);
