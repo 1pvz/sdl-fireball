@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include "ball.h"
+#include "game.h"
 #include "utils.h"
 
 Ball *
@@ -16,6 +17,7 @@ Ball_new(void) {
     o->image.image = image;
     o->image.x = 100;
     o->image.y = 230;
+    o->game = NULL;
     o->fired = false;
     o->speedX = 5;
     o->speedY = 5;
@@ -29,12 +31,14 @@ Ball_fire(Ball *self) {
 
 void
 Ball_move(Ball *self) {
+    int width = self->game->width;
+    int height = self->game->height;
     Ball *o = self;
     if (o->fired) {
-        if (o->image.x < 0 || (o->image.x + o->image.image->w) > 400) {
+        if (o->image.x < 0 || (o->image.x + o->image.image->w) > width) {
             o->speedX = -o->speedX;
         }
-        if (o->image.y < 0 || (o->image.y + o->image.image->h) > 300) {
+        if (o->image.y < 0 || (o->image.y + o->image.image->h) > height) {
             o->speedY = -o->speedY;
         }
 
