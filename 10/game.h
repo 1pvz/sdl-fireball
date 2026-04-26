@@ -8,7 +8,6 @@
 #include "block.h"
 
 #define MAX_COUNT SDL_SCANCODE_COUNT
-#define NUMBER_OF_BLOCKS 3
 
 struct _GameConfig {
     int width;
@@ -25,7 +24,7 @@ struct _Game {
     bool quit;
     Paddle *paddle;
     Ball *ball;
-    Block *blocks[NUMBER_OF_BLOCKS];
+    Block **blocks;
     int numberOfBlocks;
     bool keydowns[MAX_COUNT];
     void (*actions[MAX_COUNT])(void *);

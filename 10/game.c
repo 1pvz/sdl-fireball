@@ -33,10 +33,7 @@ Game_new(GameConfig gameConfig) {
     g->quit = false;
     g->paddle = NULL;
     g->ball = NULL;
-
-    for (int i = 0; i < NUMBER_OF_BLOCKS; i += 1) {
-        g->blocks[i] = NULL;
-    }
+    g->blocks = NULL;
     g->numberOfBlocks = 0;
 
     for (int i = 0; i < MAX_COUNT; i += 1) {

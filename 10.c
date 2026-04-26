@@ -3,6 +3,7 @@
 #include <SDL3/SDL_main.h>
 
 #include "10/gua_image.h"
+#include "10/level_config.h"
 #include "10/paddle.h"
 #include "10/ball.h"
 #include "10/block.h"
@@ -74,7 +75,17 @@ main(int argc, char* argv[]) {
         SDL_Quit();
         return 1;
     }
-    for (int i = 0; i < NUMBER_OF_BLOCKS; i += 1) {
+    LevelConfig levelConfig = loadLevelConfig();
+    Block **blocks = malloc(levelConfig.numberOfBlocks * sizeof(Block *));
+    if (blocks == NULL) {
+        SDL_Log("Failed to create blocks\n");
+        SDL_DestroyWindow(game->window);
+        free(game);
+        SDL_Quit();
+        return 1;
+    }
+    Position *position = levelConfig.positions;
+    for (int i = 0; i < levelConfig.numberOfBlocks; i += 1) {
         Block *block = Block_new_with_image(blockImage);
         if (block == NULL) {
             // 清理已经创建成功的 block
@@ -87,11 +98,12 @@ main(int argc, char* argv[]) {
             SDL_Quit();
             return 1;
         }
-        block->image.x = i * 100;
-        block->image.y = 100;
-        game->blocks[i] = block;
+        block->image.x = position[i].x;
+        block->image.y = position[i].y;
+        blocks[i] = block;
         game->numberOfBlocks += 1;
     }
+    game->blocks = blocks;
 
     Game_registerAction(game, SDL_SCANCODE_A, moveLeft, paddle);
     Game_registerAction(game, SDL_SCANCODE_D, moveRight, paddle);
