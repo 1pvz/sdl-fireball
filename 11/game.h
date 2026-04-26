@@ -3,6 +3,7 @@
 #include <SDL3/SDL_video.h>
 #include <SDL3/SDL_surface.h>
 #include <SDL3/SDL_scancode.h>
+#include <SDL3/SDL_render.h>
 #include "paddle.h"
 #include "ball.h"
 #include "block.h"
@@ -18,7 +19,7 @@ typedef struct _GameConfig GameConfig;
 
 struct _Game {
     SDL_Window *window;
-    SDL_Surface *surface;
+    SDL_Renderer *renderer;
     SDL_Surface *blockImage;
     int width;
     int height;

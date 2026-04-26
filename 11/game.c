@@ -1,7 +1,10 @@
 #include <stdbool.h>
 #include <stdlib.h>
+#include "SDL3/SDL_error.h"
+#include "SDL3/SDL_render.h"
 #include "SDL3/SDL_scancode.h"
 #include "SDL3/SDL_surface.h"
+#include "SDL3/SDL_video.h"
 #include "assert.h"
 #include "level_config.h"
 #include <SDL3/SDL_log.h>
@@ -22,15 +25,14 @@ Game_new(GameConfig gameConfig) {
         return NULL;
     }
     g->window = window;
-
-    SDL_Surface *surface = SDL_GetWindowSurface(window);
-    if (surface == NULL) {
-        SDL_Log("Error getting surface: %s\n", SDL_GetError());
+    SDL_Renderer *renderer = SDL_CreateRenderer(window, NULL);
+    if (renderer == NULL) {
+        SDL_Log("Error creating renderer: %s\n", SDL_GetError());
         SDL_DestroyWindow(window);
         free(g);
         return NULL;
     }
-    g->surface = surface;
+    g->renderer = renderer;
     g->blockImage = NULL;
     g->width = gameConfig.width;
     g->height = gameConfig.height;
@@ -103,14 +105,16 @@ Game_loadLevel(Game *self, unsigned int level, SDL_Surface *blockImage) {
 
 void
 Game_drawImage(Game *self, GuaImage image) {
-    SDL_Rect rect = {
-        .x = image.x,
-        .y = image.y,
-        .w = image.image->w,
-        .h = image.image->h,
+    SDL_FRect rect = {
+        .x = (float)image.x,
+        .y = (float)image.y,
+        .w = (float)image.image->w,
+        .h = (float)image.image->h,
     };
     Game *game = self;
-    SDL_BlitSurface(image.image, NULL, game->surface, &rect);
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(game->renderer, image.image);
+    SDL_RenderTexture(game->renderer, texture, NULL, &rect);
+    SDL_DestroyTexture(texture);
 }
 
 void
@@ -201,7 +205,7 @@ Game_draw(Game *self) {
             Game_drawImage(game, block->image);
         }
     }
-    SDL_UpdateWindowSurface(game->window);
+    SDL_RenderPresent(game->renderer);
 }
 
 void
@@ -220,8 +224,8 @@ Game_runLoop(Game *self) {
             }
         }
         // clear
-        Uint64 color = SDL_MapSurfaceRGB(game->surface, 255, 255, 255);
-        SDL_FillSurfaceRect(game->surface, NULL, color);
+        SDL_SetRenderDrawColor(game->renderer, 255, 255, 255, 255);
+        SDL_RenderClear(game->renderer);
         // update
         Game_update(game);
         // draw
