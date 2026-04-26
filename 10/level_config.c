@@ -2,26 +2,45 @@
 #include <stdlib.h>
 
 Position level1[] = {
-    (Position){
-        .x = 0,
-        .y = 100,
-    },
-    (Position){
-        .x = 100,
-        .y = 100,
-    },
-    (Position){
-        .x = 200,
-        .y = 100,
-    },
+    {0, 100},
+    {100, 100},
+    {200, 100},
 };
 
-LevelConfig levelConfig = {
-    .numberOfBlocks = 3,
-    .positions = level1,
+LevelConfig levelConfig[] = {
+    {
+        .numberOfBlocks = 1,
+        .positions = (Position []){
+            {0, 100},
+        },
+    },
+    {
+        .numberOfBlocks = 2,
+        .positions = (Position []){
+            {0, 100},
+            {100, 100},
+        },
+    },
+    {
+        .numberOfBlocks = 3,
+        .positions = (Position []){
+            {0, 100},
+            {100, 100},
+            {200, 100},
+        },
+    },
+    {
+        .numberOfBlocks = 4,
+        .positions = (Position []){
+            {0, 100},
+            {100, 100},
+            {200, 100},
+            {0, 130},
+        },
+    },
 };
 
 LevelConfig
-loadLevelConfig(void) {
-    return levelConfig;
+loadLevelConfig(int index) {
+    return levelConfig[index];
 }

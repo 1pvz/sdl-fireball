@@ -13,4 +13,4 @@ struct _LevelConfig {
 typedef struct _LevelConfig LevelConfig;
 
 LevelConfig
-loadLevelConfig(void);
+loadLevelConfig(int index);
