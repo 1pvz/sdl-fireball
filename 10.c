@@ -4,7 +4,6 @@
 #include <SDL3/SDL_main.h>
 
 #include "10/gua_image.h"
-#include "10/level_config.h"
 #include "10/paddle.h"
 #include "10/ball.h"
 #include "10/block.h"
