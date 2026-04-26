@@ -1,6 +1,9 @@
 #include <stdbool.h>
 #include <stdlib.h>
+#include "SDL3/SDL_scancode.h"
+#include "SDL3/SDL_surface.h"
 #include "assert.h"
+#include "level_config.h"
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_timer.h>
@@ -28,6 +31,7 @@ Game_new(GameConfig gameConfig) {
         return NULL;
     }
     g->surface = surface;
+    g->blockImage = NULL;
     g->width = gameConfig.width;
     g->height = gameConfig.height;
     g->quit = false;
@@ -51,11 +55,50 @@ Game_new(GameConfig gameConfig) {
 }
 
 void
-Game_registerAction(Game *self, SDL_Scancode key, void (*callback)(void *), void *data) {
+Game_registerAction(Game *self, SDL_Scancode key, void (*callback)(void *, SDL_Scancode sc), void *data) {
     assert(key < MAX_COUNT);
     Game *game = self;
     game->actions[key] = callback;
     game->data[key] = data;
+}
+
+bool
+Game_loadLevel(Game *self, unsigned int level, SDL_Surface *blockImage) {
+    Game *game = self;
+
+    LevelConfig levelConfig = loadLevelConfig(level - 1);
+    Block **blocks = malloc(levelConfig.numberOfBlocks * sizeof(Block *));
+    if (blocks == NULL) {
+        SDL_Log("Failed to create blocks\n");
+        return false;
+    }
+    Position *position = levelConfig.positions;
+    int loadedCount = 0;
+    for (int i = 0; i < levelConfig.numberOfBlocks; i += 1) {
+        Block *block = Block_new_with_image(blockImage);
+        if (block == NULL) {
+            for (int j = 0; j < loadedCount; j += 1) {
+                free(blocks[j]);
+            }
+            free(blocks);
+            SDL_Log("Failed to create block\n");
+            return false;
+        }
+        block->image.x = position[i].x;
+        block->image.y = position[i].y;
+        blocks[i] = block;
+        loadedCount += 1;
+    }
+
+    // 创建了新的之后，再释放旧的，这样可以确保 game->blocks 要么为 NULL，要么为有效的 blocks
+    for (int i = 0; i < game->numberOfBlocks; i += 1) {
+        free(game->blocks[i]);
+    }
+    free(game->blocks);
+
+    game->blocks = blocks;
+    game->numberOfBlocks = levelConfig.numberOfBlocks;
+    return true;
 }
 
 void
@@ -168,7 +211,8 @@ Game_runLoop(Game *self) {
         Game_bindEvents(game);
         for (int i = 0; i < MAX_COUNT; i += 1) {
             if (game->actions[i] != NULL && game->keydowns[i]) {
-                game->actions[i](game->data[i]);
+                // i 是 scancode
+                game->actions[i](game->data[i], i);
             }
         }
         // clear

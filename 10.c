@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdlib.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
@@ -9,23 +10,33 @@
 #include "10/block.h"
 #include "10/game.h"
 #include "10/utils.h"
+#include "SDL3/SDL_scancode.h"
 
 void
-moveLeft(void *data) {
+actionMoveLeft(void *data, SDL_Scancode sc) {
     Paddle *paddle = (Paddle *)data;
     Paddle_moveLeft(paddle);
 }
 
 void
-moveRight(void *data) {
+actionMoveRight(void *data, SDL_Scancode sc) {
     Paddle *paddle = (Paddle *)data;
     Paddle_moveRight(paddle);
 }
 
 void
-fire(void *data) {
+actionFire(void *data, SDL_Scancode sc) {
     Ball *ball = (Ball *)data;
     Ball_fire(ball);
+}
+
+void
+actionLoadLevel(void *data, SDL_Scancode sc) {
+    Game *game = data;
+    unsigned int level = sc - SDL_SCANCODE_1 + 1;
+    if (1 <= level && level <= 4) {
+        Game_loadLevel(game, level, game->blockImage);
+    }
 }
 
 int
@@ -75,39 +86,22 @@ main(int argc, char* argv[]) {
         SDL_Quit();
         return 1;
     }
-    LevelConfig levelConfig = loadLevelConfig();
-    Block **blocks = malloc(levelConfig.numberOfBlocks * sizeof(Block *));
-    if (blocks == NULL) {
-        SDL_Log("Failed to create blocks\n");
+    game->blockImage = blockImage;
+    bool loaded = Game_loadLevel(game, 1, blockImage);
+    if (loaded == false) {
         SDL_DestroyWindow(game->window);
         free(game);
         SDL_Quit();
         return 1;
     }
-    Position *position = levelConfig.positions;
-    for (int i = 0; i < levelConfig.numberOfBlocks; i += 1) {
-        Block *block = Block_new_with_image(blockImage);
-        if (block == NULL) {
-            // 清理已经创建成功的 block
-            for (int j = 0; j < i; j += 1) {
-                free(game->blocks[j]);
-            }
-            SDL_Log("Failed to create block\n");
-            SDL_DestroyWindow(game->window);
-            free(game);
-            SDL_Quit();
-            return 1;
-        }
-        block->image.x = position[i].x;
-        block->image.y = position[i].y;
-        blocks[i] = block;
-        game->numberOfBlocks += 1;
-    }
-    game->blocks = blocks;
 
-    Game_registerAction(game, SDL_SCANCODE_A, moveLeft, paddle);
-    Game_registerAction(game, SDL_SCANCODE_D, moveRight, paddle);
-    Game_registerAction(game, SDL_SCANCODE_F, fire, ball);
+    Game_registerAction(game, SDL_SCANCODE_A, actionMoveLeft, paddle);
+    Game_registerAction(game, SDL_SCANCODE_D, actionMoveRight, paddle);
+    Game_registerAction(game, SDL_SCANCODE_F, actionFire, ball);
+    Game_registerAction(game, SDL_SCANCODE_1, actionLoadLevel, game);
+    Game_registerAction(game, SDL_SCANCODE_2, actionLoadLevel, game);
+    Game_registerAction(game, SDL_SCANCODE_3, actionLoadLevel, game);
+    Game_registerAction(game, SDL_SCANCODE_4, actionLoadLevel, game);
 
     Game_runLoop(game);
 

@@ -19,6 +19,7 @@ typedef struct _GameConfig GameConfig;
 struct _Game {
     SDL_Window *window;
     SDL_Surface *surface;
+    SDL_Surface *blockImage;
     int width;
     int height;
     bool quit;
@@ -27,7 +28,7 @@ struct _Game {
     Block **blocks;
     int numberOfBlocks;
     bool keydowns[MAX_COUNT];
-    void (*actions[MAX_COUNT])(void *);
+    void (*actions[MAX_COUNT])(void *, SDL_Scancode sc);
     void *data[MAX_COUNT];
     bool paused;
     bool enableDrag;
@@ -41,7 +42,10 @@ Game *
 Game_new(GameConfig gameConfig);
 
 void
-Game_registerAction(Game *self, SDL_Scancode key, void (*callback)(void *), void *data);
+Game_registerAction(Game *self, SDL_Scancode key, void (*callback)(void *, SDL_Scancode sc), void *data);
+
+bool
+Game_loadLevel(Game *self, unsigned int level, SDL_Surface *blockImage);
 
 void
 Game_drawImage(Game *self, GuaImage image);
