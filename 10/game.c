@@ -128,6 +128,10 @@ Game_bindEvents(Game *self) {
             if (sc == SDL_SCANCODE_P) {
                 game->paused = !game->paused;
             }
+            unsigned int level = sc - SDL_SCANCODE_1 + 1;
+            if (level >= 1 && level <= 4) {
+                Game_loadLevel(game, level, game->blockImage);
+            }
         } else if (event.type == SDL_EVENT_KEY_UP) {
             SDL_Scancode sc = event.key.scancode;
             if (sc < MAX_COUNT) {

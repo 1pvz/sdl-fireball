@@ -30,15 +30,6 @@ actionFire(void *data, SDL_Scancode sc) {
     Ball_fire(ball);
 }
 
-void
-actionLoadLevel(void *data, SDL_Scancode sc) {
-    Game *game = data;
-    unsigned int level = sc - SDL_SCANCODE_1 + 1;
-    if (1 <= level && level <= 4) {
-        Game_loadLevel(game, level, game->blockImage);
-    }
-}
-
 int
 main(int argc, char* argv[]) {
     if (SDL_Init(SDL_INIT_VIDEO) == false) {
@@ -98,10 +89,6 @@ main(int argc, char* argv[]) {
     Game_registerAction(game, SDL_SCANCODE_A, actionMoveLeft, paddle);
     Game_registerAction(game, SDL_SCANCODE_D, actionMoveRight, paddle);
     Game_registerAction(game, SDL_SCANCODE_F, actionFire, ball);
-    Game_registerAction(game, SDL_SCANCODE_1, actionLoadLevel, game);
-    Game_registerAction(game, SDL_SCANCODE_2, actionLoadLevel, game);
-    Game_registerAction(game, SDL_SCANCODE_3, actionLoadLevel, game);
-    Game_registerAction(game, SDL_SCANCODE_4, actionLoadLevel, game);
 
     Game_runLoop(game);
 
