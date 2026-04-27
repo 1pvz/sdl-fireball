@@ -205,7 +205,6 @@ Game_draw(Game *self) {
             Game_drawImage(game, block->image);
         }
     }
-    SDL_RenderPresent(game->renderer);
 }
 
 void

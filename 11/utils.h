@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "gua_image.h"
 
 SDL_Surface *
@@ -10,3 +14,6 @@ clamp(int value, int min, int max);
 
 bool
 collide(GuaImage a, GuaImage b);
+#ifdef __cplusplus
+}
+#endif

@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct _Position {
     int x;
     int y;
@@ -14,3 +18,6 @@ typedef struct _LevelConfig LevelConfig;
 
 LevelConfig
 loadLevelConfig(int index);
+#ifdef __cplusplus
+}
+#endif

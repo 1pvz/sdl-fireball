@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "gua_image.h"
 
 struct _Game;
@@ -29,3 +33,6 @@ Paddle_new(void);
 
 bool
 Paddle_collide(Paddle *self, GuaImage image);
+#ifdef __cplusplus
+}
+#endif

@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "gua_image.h"
 
 struct _Block {
@@ -19,3 +23,6 @@ Block_kill(Block *self);
 
 bool
 Block_collide(Block *self, GuaImage image);
+#ifdef __cplusplus
+}
+#endif

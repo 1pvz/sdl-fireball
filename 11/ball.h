@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "gua_image.h"
 
 struct _Game;
@@ -26,3 +30,7 @@ Ball_move(Ball *self);
 
 void
 Ball_bounce(Ball *self);
+
+#ifdef __cplusplus
+}
+#endif

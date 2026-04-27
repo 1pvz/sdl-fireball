@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <SDL3/SDL_video.h>
 #include <SDL3/SDL_surface.h>
 #include <SDL3/SDL_scancode.h>
@@ -62,3 +66,6 @@ Game_draw(Game *self);
 
 void
 Game_runLoop(Game *self);
+#ifdef __cplusplus
+}
+#endif

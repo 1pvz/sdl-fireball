@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <SDL3/SDL_surface.h>
 
 struct _GuaImage {
@@ -8,3 +12,6 @@ struct _GuaImage {
     int y;
 };
 typedef struct _GuaImage GuaImage;
+#ifdef __cplusplus
+}
+#endif
