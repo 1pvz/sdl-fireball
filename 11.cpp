@@ -2,13 +2,6 @@
 #include <stdlib.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_main.h>
-#include <SDL3/SDL_scancode.h>
-
-#include "SDL3/SDL_events.h"
-#include "SDL3/SDL_render.h"
-#include "imgui/imgui.h"
-#include "imgui/imgui_impl_sdl3.h"
-#include "imgui/imgui_impl_sdlrenderer3.h"
 
 #include "11/gua_image.h"
 #include "11/paddle.h"
@@ -16,8 +9,13 @@
 #include "11/block.h"
 #include "11/game.h"
 #include "11/utils.h"
+#include "SDL3/SDL_events.h"
+#include "SDL3/SDL_scancode.h"
 
-extern "C" {
+#include "imgui/imgui.h"
+#include "imgui/imgui_impl_sdl3.h"
+#include "imgui/imgui_impl_sdlrenderer3.h"
+
 void
 actionMoveLeft(void *data, SDL_Scancode sc) {
     Paddle *paddle = (Paddle *)data;
@@ -34,8 +32,6 @@ void
 actionFire(void *data, SDL_Scancode sc) {
     Ball *ball = (Ball *)data;
     Ball_fire(ball);
-}
-
 }
 
 int
@@ -55,9 +51,11 @@ main(int argc, char* argv[]) {
         return 1;
     }
 
-    // ImGUI
+    // Setup Dear ImGui context
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    // Setup Platform/Renderer backends
     ImGui_ImplSDL3_InitForSDLRenderer(game->window, game->renderer);
     ImGui_ImplSDLRenderer3_Init(game->renderer);
 
@@ -104,87 +102,47 @@ main(int argc, char* argv[]) {
     Game_registerAction(game, SDL_SCANCODE_D, actionMoveRight, paddle);
     Game_registerAction(game, SDL_SCANCODE_F, actionFire, ball);
 
+    // Game_runLoop(game);
     while (game->quit == false) {
         Uint32 frameStart = SDL_GetTicks();
-        // 每帧动态计算
         const int delay = 1000 / game->fps;
 
-        // 统一处理事件
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
-            // ImGui 处理
             ImGui_ImplSDL3_ProcessEvent(&event);
-            // 游戏处理事件
             if (event.type == SDL_EVENT_QUIT) {
                 game->quit = true;
-            } else if (event.type == SDL_EVENT_KEY_DOWN) {
-                SDL_Scancode sc = event.key.scancode;
-                if (sc < MAX_COUNT) {
-                    game->keydowns[sc] = true;
-                }
-                if (sc == SDL_SCANCODE_P) {
-                    game->paused = !game->paused;
-                }
-                unsigned int level = sc - SDL_SCANCODE_1 + 1;
-                if (level >= 1 && level <= 4) {
-                    Game_loadLevel(game, level, game->blockImage);
-                }
-            } else if (event.type == SDL_EVENT_KEY_UP) {
-                SDL_Scancode sc = event.key.scancode;
-                if (sc < MAX_COUNT) {
-                    game->keydowns[sc] = false;
-                }
-            } else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
-                float x = event.button.x;
-                float y = event.button.y;
-                SDL_Point point = { (int)x, (int)y };
-                SDL_Rect rect = {
-                    game->ball->image.x,
-                    game->ball->image.y,
-                    game->ball->image.image->w,
-                    game->ball->image.image->h,
-                };
-                if (SDL_PointInRect(&point, &rect)) {
-                    game->enableDrag = true;
-                    game->offsetX = x - rect.x;
-                    game->offsetY = y - rect.y;
-                }
-            } else if (event.type == SDL_EVENT_MOUSE_BUTTON_UP) {
-                game->enableDrag = false;
-            } else if (event.type == SDL_EVENT_MOUSE_MOTION) {
-                if (game->enableDrag) {
-                    game->ball->image.x = event.motion.x - game->offsetX;
-                    game->ball->image.y = event.motion.y - game->offsetY;
+            }
+
+            Game_bindEvents(game, &event);
+            for (int i = 0; i < MAX_COUNT; i += 1) {
+                if (game->actions[i] != NULL && game->keydowns[i]) {
+                    // i 是 scancode
+                    game->actions[i](game->data[i], (SDL_Scancode)i);
                 }
             }
         }
-
+        // Start the Dear ImGui frame
         ImGui_ImplSDLRenderer3_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         ImGui::NewFrame();
 
-        for (int i = 0; i < MAX_COUNT; i += 1) {
-            if (game->actions[i] != NULL && game->keydowns[i]) {
-                // i 是 scancode
-                game->actions[i](game->data[i], (SDL_Scancode)i);
-            }
-        }
-
+        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
         ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiCond_FirstUseEver);
-        ImGui::Begin("Debug");
+        ImGui::Begin("Hello, world!");
         ImGui::Text("Ball position (%d, %d)", ball->image.x, ball->image.y);
+        ImGui::Text("App average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
         ImGui::SliderInt("FPS", &game->fps, 1, 60);
         ImGui::End();
 
-        // clear
+        // Rendering
+        ImGui::Render();
         SDL_SetRenderDrawColor(game->renderer, 255, 255, 255, 255);
         SDL_RenderClear(game->renderer);
-        // update
+
         Game_update(game);
-        // draw
         Game_draw(game);
 
-        ImGui::Render();
         ImGui_ImplSDLRenderer3_RenderDrawData(ImGui::GetDrawData(), game->renderer);
         SDL_RenderPresent(game->renderer);
 
@@ -195,7 +153,7 @@ main(int argc, char* argv[]) {
         }
     }
 
-    // clear imgui
+    // Cleanup
     ImGui_ImplSDLRenderer3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext();

@@ -118,56 +118,54 @@ Game_drawImage(Game *self, GuaImage image) {
 }
 
 void
-Game_bindEvents(Game *self) {
+Game_bindEvents(Game *self, SDL_Event *SDLEvent) {
     Game *game = self;
-    SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-        if (event.type == SDL_EVENT_QUIT) {
-            game->quit = true;
-        } else if (event.type == SDL_EVENT_KEY_DOWN) {
-            SDL_Scancode sc = event.key.scancode;
-            if (sc < MAX_COUNT) {
-                game->keydowns[sc] = true;
-            }
-            if (sc == SDL_SCANCODE_P) {
-                game->paused = !game->paused;
-            }
-            unsigned int level = sc - SDL_SCANCODE_1 + 1;
-            if (level >= 1 && level <= 4) {
-                Game_loadLevel(game, level, game->blockImage);
-            }
-        } else if (event.type == SDL_EVENT_KEY_UP) {
-            SDL_Scancode sc = event.key.scancode;
-            if (sc < MAX_COUNT) {
-                game->keydowns[sc] = false;
-            }
-        } else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
-            float x = event.button.x;
-            float y = event.button.y;
-            SDL_Point point = {
-                .x = x,
-                .y = y,
-            };
-            SDL_Rect rect = {
-                .x = game->ball->image.x,
-                .y = game->ball->image.y,
-                .w = game->ball->image.image->w,
-                .h = game->ball->image.image->h,
-            };
-            if (SDL_PointInRect(&point, &rect)) {
-                game->enableDrag = true;
-                game->offsetX = x - rect.x;
-                game->offsetY = y - rect.y;
-            }
-        } else if (event.type == SDL_EVENT_MOUSE_BUTTON_UP) {
-            game->enableDrag = false;
-        } else if (event.type == SDL_EVENT_MOUSE_MOTION) {
-            if (game->enableDrag) {
-                float x = event.motion.x;
-                float y = event.motion.y;
-                game->ball->image.x = x - game->offsetX;
-                game->ball->image.y = y - game->offsetY;
-            }
+    SDL_Event event = *SDLEvent;
+    if (event.type == SDL_EVENT_QUIT) {
+        game->quit = true;
+    } else if (event.type == SDL_EVENT_KEY_DOWN) {
+        SDL_Scancode sc = event.key.scancode;
+        if (sc < MAX_COUNT) {
+            game->keydowns[sc] = true;
+        }
+        if (sc == SDL_SCANCODE_P) {
+            game->paused = !game->paused;
+        }
+        unsigned int level = sc - SDL_SCANCODE_1 + 1;
+        if (level >= 1 && level <= 4) {
+            Game_loadLevel(game, level, game->blockImage);
+        }
+    } else if (event.type == SDL_EVENT_KEY_UP) {
+        SDL_Scancode sc = event.key.scancode;
+        if (sc < MAX_COUNT) {
+            game->keydowns[sc] = false;
+        }
+    } else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
+        float x = event.button.x;
+        float y = event.button.y;
+        SDL_Point point = {
+            .x = x,
+            .y = y,
+        };
+        SDL_Rect rect = {
+            .x = game->ball->image.x,
+            .y = game->ball->image.y,
+            .w = game->ball->image.image->w,
+            .h = game->ball->image.image->h,
+        };
+        if (SDL_PointInRect(&point, &rect)) {
+            game->enableDrag = true;
+            game->offsetX = x - rect.x;
+            game->offsetY = y - rect.y;
+        }
+    } else if (event.type == SDL_EVENT_MOUSE_BUTTON_UP) {
+        game->enableDrag = false;
+    } else if (event.type == SDL_EVENT_MOUSE_MOTION) {
+        if (game->enableDrag) {
+            float x = event.motion.x;
+            float y = event.motion.y;
+            game->ball->image.x = x - game->offsetX;
+            game->ball->image.y = y - game->offsetY;
         }
     }
 }
@@ -205,6 +203,7 @@ Game_draw(Game *self) {
             Game_drawImage(game, block->image);
         }
     }
+    // SDL_RenderPresent(game->renderer);
 }
 
 void
@@ -215,7 +214,7 @@ Game_runLoop(Game *self) {
     while (game->quit == false) {
         Uint32 frameStart = SDL_GetTicks();
 
-        Game_bindEvents(game);
+        // Game_bindEvents(game);
         for (int i = 0; i < MAX_COUNT; i += 1) {
             if (game->actions[i] != NULL && game->keydowns[i]) {
                 // i 是 scancode

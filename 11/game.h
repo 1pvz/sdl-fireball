@@ -56,7 +56,7 @@ void
 Game_drawImage(Game *self, GuaImage image);
 
 void
-Game_bindEvents(Game *self);
+Game_bindEvents(Game *self, SDL_Event *SDLEvent);
 
 void
 Game_update(Game *self);
